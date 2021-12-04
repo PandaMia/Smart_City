@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Icons {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="title">Составление пешеходных маршрутов</h5>
+      </div>
+      <video
+                id="my-video"
+                class="video-js"
+                controls
+                preload="auto"
+                width="640"
+                height="420"
+                poster=""
+                data-setup="{}"
+                autoplay
+                loop
+              >
+                <source src="/static/assets/video/heatmap.webm" type="video/webm" />
+                <p class="vjs-no-js">
+                  To view this video please enable JavaScript, and consider upgrading to a
+                  web browser that
+                  <a href="https://videojs.com/html5-video-support/" target="_blank"
+                    >supports HTML5 video</a
+                  >
+                </p>
+      </video>
+      <div class="card-body">
+        <span class="datepicker-toggle">
+          <span class="datepicker-toggle-button"> </span>
+          <label for="start_period">Начало периода:</label>
+          <input type="date" id="start_period" class="datepicker-input">
+        </span>
+      </div>
+      <div class="card-body">
+        <span class="datepicker-toggle">
+          <span class="datepicker-toggle-button">  </span>
+          <label for="end_period">Конец периода:</label>
+          <input type="date" id = 'end_period' class="datepicker-input">
+        </span>
+      </div>
+      <div class="card-footer">
+              <a href="/downloadfileheat"><button class="btn btn-fill btn-primary">Отправить заявку</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

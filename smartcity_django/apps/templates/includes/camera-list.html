@@ -1,0 +1,54 @@
+<div class="row">
+    <div class="col-lg-6 col-md-12">
+      <div class="card ">
+        <div class="card-header">
+          <h4 class="card-title"> Камеры</h4>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tablesorter " id="">
+              <thead class=" text-primary">
+                <tr>
+                  <th>
+                    Адрес
+                  </th>
+                  <th>
+                    url
+                  </th>
+                  <th class="text-center">
+                    Коэф. разрушения
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for porhole in porholes.all %}
+                <tr>
+                  <td>
+                    <a href="/ui-cameraview.html?cam_id={{porhole.pId}}">{{porhole.address}}</a>
+                  </td>
+                  <td>
+                    {{porhole.cameraUrl}}
+                  </td>
+                  <td class="text-center">
+                    {{porhole.value}}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card card-plain">
+              <div class="card-body">
+                <div id="map" class="map"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>

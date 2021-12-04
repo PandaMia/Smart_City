@@ -1,0 +1,17 @@
+source/
+garbage.avi
+output.mp4
+anomaly.mp4
+pothole.mp4
+heatmap.mp4
+saved_figure.png
+yolov3.weights
+*.pkl
+*.pyc
+*.swp
+Kitti/testing
+Kitti/training
+legacy
+eval/video/2011_09_26
+.idea/
+.vscode/
