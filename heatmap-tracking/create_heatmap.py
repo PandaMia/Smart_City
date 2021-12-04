@@ -30,9 +30,8 @@ class Create_Heatmap():
 
 
 
-        # self.path_labels = yolo(input_path)
-
-        self.path_labels = 'yolov5/runs/detect/exp/labels'
+        self.path_labels = yolo(input_path)
+        # self.path_labels = 'yolov5/runs/detect/exp/labels'
 
         self.height, self.width = background(input_path, 
                                             background_count=background_count)
