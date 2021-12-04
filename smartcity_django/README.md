@@ -2,35 +2,7 @@
 
  ![version](https://img.shields.io/badge/version-1.0.1-blue.svg) [![GitHub issues open](https://img.shields.io/github/issues/creativetimofficial/black-dashboard-django.svg?maxAge=2592000)](https://github.com/creativetimofficial/black-dashboard-django/issues?q=is%3Aopen+is%3Aissue) [![GitHub issues closed](https://img.shields.io/github/issues-closed-raw/creativetimofficial/black-dashboard-django.svg?maxAge=2592000)](https://github.com/creativetimofficial/black-dashboard-django/issues?q=is%3Aissue+is%3Aclosed) [![Join the chat at https://gitter.im/NIT-dgp/General](https://badges.gitter.im/NIT-dgp/General.svg)](https://gitter.im/creative-tim-general/Lobby) [![Chat](https://img.shields.io/badge/chat-on%20discord-7289da.svg)](https://discord.gg/E4aHAQy)
 
-Open-source **[Django Template](https://www.creative-tim.com/templates/django)** crafted on top of **Black Dashboard**, a popular Bootstrap 4 design. Start your development with a modern, dark-themed Bootstrap 4 Admin template for Django. It features a huge number of components built to fit together and look fantastic. If you want to code faster, with a smooth workflow, then you should try this template carefully developed with Django, a well-known Python Framework. **Django codebase** is crafted using a simple, modular structure that follows the best practices and provides authentication, database configuration, and deployment scripts for Docker and Gunicorn/Nginx stack. 
 
-- Up-to-date [dependencies](./requirements.txt): **Django 3.2.6 LTS**
-- [SCSS compilation](#recompile-css) via **Gulp**
-- UI Kit: **Black Dashboard** (Free Version)
-- [Django](https://appseed.us/boilerplate-code/django-dashboard) Codebase - provided by **[App Generator](https://appseed.us/)**
-- UI-Ready app, SQLite Database, Django Native ORM
-- Modular design, clean code-base
-- Session-Based Authentication, Forms validation
-- Deployment scripts: Docker, Gunicorn / Nginx
-
-<br />
-
-![Black Dashboard Django - Admin Dashboard coded in Django.](https://user-images.githubusercontent.com/51070104/133767654-7ba1201d-152e-4de2-820b-35e6fc17560a.png)
-
-<br />
-
-## Table of Contents
-
-* [Demo](#demo)
-* [Quick Start](#quick-start)
-* [Documentation](#documentation)
-* [File Structure](#file-structure)
-* [Browser Support](#browser-support)
-* [Resources](#resources)
-* [Reporting Issues](#reporting-issues)
-* [Technical Support or Questions](#technical-support-or-questions)
-* [Licensing](#licensing)
-* [Useful Links](#useful-links)
 
 <br />
 
