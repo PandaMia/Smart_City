@@ -1,43 +1,22 @@
-import time
 import os
 import streamlit as st
-import io
 import streamlink
-import numpy as np
-import matplotlib.colors as mcolors
+import pandas as pd
 import torch
 import cv2
-from config import COCO_CLASSES
+from config import GARBAGE_CONFIG, POTHOLE_CONFIG
+from create_anomaly_model import get_anomaly_model, evaluate
+from Run import main
 
 
-@st.cache(max_entries=2)
+@st.cache(max_entries=3)
 def get_yolo5(weights='weights/yolov5s.pt'):
     return torch.hub.load('ultralytics/yolov5', 'custom', path=weights)
 
 
 @st.cache(max_entries=10)
-def get_preds(img):
+def get_preds(img, model):
     return model([img]).xyxy[0].cpu().numpy()
-
-
-def get_colors(indexes):
-    to_255 = lambda c: int(c*255)
-    tab_colors = list(mcolors.TABLEAU_COLORS.values())
-    tab_colors = [list(map(to_255, mcolors.to_rgb(name_color)))
-                                                for name_color in tab_colors]
-    base_colors = list(mcolors.BASE_COLORS.values())
-    base_colors = [list(map(to_255, name_color)) for name_color in base_colors]
-    rgb_colors = tab_colors + base_colors
-    rgb_colors = rgb_colors*5
-
-    color_dict = {}
-    for i, index in enumerate(indexes):
-        if i < len(rgb_colors):
-            color_dict[index] = rgb_colors[i]
-        else:
-            color_dict[index] = (255, 0, 0)
-
-    return color_dict
 
 
 def save_uploaded_file(uploaded_file):
@@ -45,7 +24,7 @@ def save_uploaded_file(uploaded_file):
         f.write(uploaded_file.getbuffer())
 
 
-def prepare_video(filename):
+def prepare_video(filename, model, colors):
     vid_cap = cv2.VideoCapture(os.path.join('source', filename))
     fps = vid_cap.get(cv2.CAP_PROP_FPS)
     frames = vid_cap.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -58,12 +37,11 @@ def prepare_video(filename):
         _, frame = vid_cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        result = get_preds(frame)
+        result = get_preds(frame, model)
         result_copy = result.copy()
-        result_copy = result_copy[np.isin(result_copy[:, -1], target_class_ids)]
 
         # нарисуем боксы для всех найденных целевых объектов
-        frame = draw_boxes(frame, result_copy)
+        frame = draw_boxes(frame, result_copy, colors)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         vid_writer.write(frame)
@@ -73,47 +51,61 @@ def prepare_video(filename):
     return save_path
 
 
-def draw_boxes(frame, boxes):
+def draw_boxes(frame, boxes, colors):
     for bbox_data in boxes:
         xmin, ymin, xmax, ymax, _, label = bbox_data
         p0, p1, label = (int(xmin), int(ymin)), (int(xmax), int(ymax)), int(label)
         frame = cv2.rectangle(frame,
                               p0, p1,
-                              rgb_colors[label], 2)
+                              colors[label], 2)
     return frame
 
 
-streams = {'Камера 1': 'https://youtu.be/AdUw5RdyZxI',
-           'Камера 2': 'https://youtu.be/J6LiOrQoih4',
-           'Камера 3': 'https://youtu.be/RQA5RcIZlAM'}
+def load_and_show_video(model, config):
+    uploaded_file = st.sidebar.file_uploader("Загрузите видео", type=['avi', 'mp4'])
 
-st.title('Умный город')
+    if uploaded_file is not None:
+        with st.spinner(text='Загрузка видео'):
+            save_uploaded_file(uploaded_file)
+        with st.spinner(text='Обработка видео'):
+            prepared_video_path = prepare_video(uploaded_file.name, model, config['colors'])
 
-yolo_weights = 'weights/garbage_weights.pt'
-with st.spinner('Loading the model...'):
-    model = get_yolo5(yolo_weights)
-st.sidebar.success('Loading the model.. Done!')
-
-target_class_ids = list(range(len(COCO_CLASSES)))
-rgb_colors = get_colors(target_class_ids)
-
-data_type = st.sidebar.selectbox('Выберите способ передачи данных',
-                                 ('Способ не выбран', 'Загрузка видео', 'Подключение к камере'),
-                                 index=0)
+        st.video(prepared_video_path)
+        show_legend(config)
 
 
-if data_type == 'Загрузка видео':
+def video_to_frames(filename):
+    indir = os.path.join('source', filename)
+    videoCapture = cv2.VideoCapture()
+    videoCapture.open(indir)
+    frames = videoCapture.get(cv2.CAP_PROP_FRAME_COUNT)
+
+    outdir = 'source/images'
+    for i in range(int(frames) - 1):
+        ret, frame = videoCapture.read()
+        cv2.imwrite(os.path.join(outdir, "frame_%06d.jpg" % (i)), frame)
+
+
+def prepare_anomaly_video():
     uploaded_file = st.sidebar.file_uploader("Загрузите видео", type=['avi', 'mp4'])
     if uploaded_file is not None:
-        with st.spinner(text='Loading video'):
+        with st.spinner(text='Загрузка видео'):
             save_uploaded_file(uploaded_file)
+        with st.spinner(text='Обработка видео'):
+            video_to_frames(uploaded_file.name)
 
-        prepared_video_path = prepare_video(uploaded_file.name)
-        video_file = io.open(prepared_video_path, 'rb')
-        video_bytes = video_file.read()
-        st.video(video_bytes)
+        st.video(os.path.join("source", uploaded_file.name))
 
-elif data_type == 'Подключение к камере':
+        images_path = 'source/images'
+        evaluate(anomaly_model, images_path)
+        st.image('source/saved_figure.png')
+
+
+def show_stream(model, config):
+    streams = {'Камера 1': 'https://youtu.be/AdUw5RdyZxI',
+               'Камера 2': 'https://youtu.be/J6LiOrQoih4',
+               'Камера 3': 'https://youtu.be/RQA5RcIZlAM'}
+
     camera_num = st.sidebar.selectbox('Выберите камеру',
                                       ('Камера не выбрана', 'Камера 1', 'Камера 2', 'Камера 3'),
                                       index=0)
@@ -122,28 +114,105 @@ elif data_type == 'Подключение к камере':
         frame_window = st.image([])
 
         url = streams[camera_num]
-
         streams = streamlink.streams(url)
         camera = cv2.VideoCapture(streams["480p"].url)
 
         if run:
             process = st.checkbox('Обработать')
+            if process:
+                show_legend(config)
 
         while run:
             _, frame = camera.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             if process:
-                result = get_preds(frame)
-                # скопируем результаты работы кэшируемой функции, чтобы не изменить кэш
+                result = get_preds(frame, model)
                 result_copy = result.copy()
-                # отберем только объекты нужных классов
-                result_copy = result_copy[np.isin(result_copy[:, -1], target_class_ids)]
 
-                # нарисуем боксы для всех найденных целевых объектов
-                frame = draw_boxes(frame, result_copy)
+                frame = draw_boxes(frame, result_copy, config['colors'])
 
             frame_window.image(frame)
-            #time.sleep(0.01)
+
         else:
             st.write('Видеопоток остановлен')
+
+
+def show_legend(config):
+    class_ids = list(range(len(config['classes'])))
+    labels = [config['classes'][index] for index in class_ids]
+    legend_df = pd.DataFrame({'Класс': labels})
+
+    classes = config['classes']
+    colors = config['colors']
+
+    def get_legend_color(class_name: int):
+        index = classes.index(class_name)
+        color = colors[index]
+        return 'background-color: rgb({color[0]},{color[1]},{color[2]})'.format(color=color)
+
+    st.dataframe(legend_df.style.applymap(get_legend_color))
+
+
+st.title('Умный город')
+
+garbage_weights = 'weights/garbage_weights.pt'
+pothole_weights = 'weights/pothole_weights.pt'
+coco_weights = 'weights/yolov5s.pt'
+with st.spinner('Загрузка моделей...'):
+    garbage_model = get_yolo5(garbage_weights)
+    pothole_model = get_yolo5(pothole_weights)
+    coco_model = get_yolo5(coco_weights)
+st.sidebar.success('Модели загружены!')
+
+task_type = st.sidebar.selectbox('Выберите тип задачи',
+                                 ('Задача не выбрана', 'Чистый двор', 'Дорожник',
+                                  'Safety-прак', 'Teplo-maps', 'Паркинг'),
+                                 index=0)
+
+if task_type == 'Чистый двор':
+    data_type = st.sidebar.selectbox('Выберите способ передачи данных',
+                                     ('Способ не выбран', 'Загрузить видео', 'Подключиться к камере'),
+                                     index=0)
+
+    if data_type == 'Загрузить видео':
+        load_and_show_video(garbage_model, GARBAGE_CONFIG)
+
+    elif data_type == 'Подключиться к камере':
+        show_stream(garbage_model, GARBAGE_CONFIG)
+
+elif task_type == 'Дорожник':
+    data_type = st.sidebar.selectbox('Выберите способ передачи данных',
+                                     ('Способ не выбран', 'Загрузить видео', 'Подключиться к камере'),
+                                     index=0)
+
+    if data_type == 'Загрузить видео':
+        load_and_show_video(pothole_model, POTHOLE_CONFIG)
+
+    elif data_type == 'Подключиться к камере':
+        show_stream(pothole_model, POTHOLE_CONFIG)
+
+elif task_type == 'Safety-прак':
+    data_type = st.sidebar.selectbox('Выберите способ передачи данных',
+                                     ('Способ не выбран', 'Загрузить видео'),
+                                     index=0)
+
+    if data_type == 'Загрузить видео':
+        anomaly_model = get_anomaly_model()
+        prepare_anomaly_video()
+
+elif task_type == 'Teplo-maps':
+    st.video(os.path.join("source", 'heatmap.mp4'))
+    run = st.checkbox('Вывести тепловую карту передвижений')
+    if run:
+        st.image(os.path.join('source', 'prepared', 'heatmap.jpg'))
+
+elif task_type == 'Паркинг':
+    img_file = "source/photo.jpg"
+    border_file = "source/border.jpg"
+    st.image(img_file)
+    run = st.checkbox('Построить 3D-боксы и проверить правильность парковки')
+    if run:
+        main(img_file, border_file)
+        st.image(os.path.join('source', 'prepared', '3Dbox.jpg'))
+
