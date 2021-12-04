@@ -1,0 +1,103 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} SmartCity {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="row">
+
+      <div class="col-12">
+        <div class="card card-chart">
+
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">Информация</h4>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <span>Всего камер: <b>{{porholes.count}}</b></span><br>
+              <hr>
+              <span>Требуют повышенного внимания: <b style="color:#6f3434">{{danger}}</b></span><br>
+              <span>Требуют внимания: <b style="color:#fdeb55">{{warning}}</b></span> <br>
+              <span>Проблем не обнаружено: <b style="color:#162">{{normaly}}</b></span>
+            </div>
+            <div class="card-footer">
+              <a href="/downloadfile"><button class="btn btn-fill btn-primary">Сформировать заявку</button></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card card-chart">
+          <div class="card-header">
+            <h5 class="card-category">Подключенные камеры</h5>
+            <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> {{porholes.count}} </h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-area">
+              <canvas id="chartLinePurple"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card card-chart">
+          <div class="card-header">
+            <h5 class="card-category">Обнаруженные проблемы</h5>
+            <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> 287 </h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-area">
+              <canvas id="CountryChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card card-chart">
+          <div class="card-header">
+            <h5 class="card-category">Отремонтировано объектов</h5>
+            <h3 class="card-title"><i class="tim-icons icon-send text-success"></i> 198 </h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-area">
+              <canvas id="chartLineGreen"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% include 'includes/camera-list.html' %}
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKVJWnmQpVCMUCvBGGSgIs0W_vF-uV_Xc"></script>
+
+  <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      demo.initGoogleMaps("{{companies}}", "{{danger}}");
+    });
+  </script>
+  <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      demo.initDashboardPageCharts();
+
+    });
+  </script>
+
+{% endblock javascripts %}
