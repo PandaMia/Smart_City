@@ -9,7 +9,7 @@ from create_anomaly_model import get_anomaly_model, evaluate
 from Run import main
 
 
-@st.cache(max_entries=3)
+@st.cache(max_entries=2)
 def get_yolo5(weights='weights/yolov5s.pt'):
     return torch.hub.load('ultralytics/yolov5', 'custom', path=weights)
 
@@ -158,11 +158,12 @@ st.title('Умный город')
 
 garbage_weights = 'weights/garbage_weights.pt'
 pothole_weights = 'weights/pothole_weights.pt'
-coco_weights = 'weights/yolov5s.pt'
 with st.spinner('Загрузка моделей...'):
     garbage_model = get_yolo5(garbage_weights)
+    #garbage_model = torch.hub.load('ultralytics/yolov5', 'custom', path=garbage_weights)
     pothole_model = get_yolo5(pothole_weights)
-    coco_model = get_yolo5(coco_weights)
+    #pothole_model = torch.hub.load('ultralytics/yolov5', 'custom', path=pothole_weights)
+
 st.sidebar.success('Модели загружены!')
 
 task_type = st.sidebar.selectbox('Выберите тип задачи',
